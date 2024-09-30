@@ -93,7 +93,7 @@ def extract_reviews_from_page(soup, company_name):
     for review_element in review_elements:
         try:
             date_element = review_element.find('time')
-            date_published = date_element['datetime'][:10] if date_element else None
+            date_published = date_element['datetime'] if date_element else None
 
             rating_element = review_element.find(
                 'img', alt=re.compile(r'(\d) out of 5 stars')
@@ -187,7 +187,7 @@ def save_reviews_to_csv(reviews, company_name):
     fieldnames = ['companyName', 'datePublished', 'ratingValue', 'reviewBody']
 
     with open(filename, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter=';')
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(reviews)
 
