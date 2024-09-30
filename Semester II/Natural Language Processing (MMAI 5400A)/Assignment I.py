@@ -1,11 +1,17 @@
-import time
+import csv
+import os
 import random
 import re
-import csv
+import subprocess
+import sys
+import time
 import requests
 from bs4 import BeautifulSoup
 
+
+# Step 0) Change url below to determine which company to scrape
 url = r'https://ca.trustpilot.com/review/apollomvmt.com'
+
 
 # Step 1) Use the requests module to download the HTML for URL.
 def check_and_install_package(package_name):
@@ -14,10 +20,13 @@ def check_and_install_package(package_name):
         __import__(package_name)
     except ImportError:
         print(f"'{package_name}' is not installed. Installing...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", package_name]
+        )
 
 check_and_install_package("requests")
 check_and_install_package("bs4")
+
 
 def download_html(url):
     """Download the HTML content of the given URL."""
@@ -45,6 +54,7 @@ def extract_company_name(html_content):
     except Exception as e:
         print(f"Error extracting company name: {e}")
         return "Unknown Company"
+
 
 def extract_total_reviews(html_content):
     """Extract the total number of reviews from the page."""
@@ -74,33 +84,44 @@ def find_next_page(soup):
 def extract_reviews_from_page(soup, company_name):
     """Extract reviews from the current page."""
     reviews = []
-    review_elements = soup.find_all('article', {'data-service-review-card-paper': True})
+    review_elements = soup.find_all(
+        'article', {'data-service-review-card-paper': True}
+    )
 
     print(f"Found {len(review_elements)} reviews on this page.")
 
     for review_element in review_elements:
         try:
             date_element = review_element.find('time')
-            # Extract only the first 10 characters (YYYY-MM-DD) from the date string
             date_published = date_element['datetime'][:10] if date_element else None
 
-            rating_element = review_element.find('img', alt=re.compile(r'(\d) out of 5 stars'))
+            rating_element = review_element.find(
+                'img', alt=re.compile(r'(\d) out of 5 stars')
+            )
             if rating_element:
-                rating_value_match = re.search(r'(\d) out of 5 stars', rating_element['alt'])
-                rating_value = int(rating_value_match.group(1)) if rating_value_match else None
+                rating_value_match = re.search(
+                    r'(\d) out of 5 stars', rating_element['alt']
+                )
+                rating_value = (
+                    int(rating_value_match.group(1)) if rating_value_match else None
+                )
             else:
                 rating_value = None
 
             review_body_element = review_element.find(
                 'p', {'data-service-review-text-typography': True}
             )
-            review_body = review_body_element.get_text(strip=True) if review_body_element else None
+            review_body = (
+                review_body_element.get_text(strip=True)
+                if review_body_element
+                else None
+            )
 
             review_data = {
                 'companyName': company_name,
                 'datePublished': date_published,
                 'ratingValue': rating_value,
-                'reviewBody': review_body
+                'reviewBody': review_body,
             }
             reviews.append(review_data)
         except Exception as e:
@@ -110,7 +131,8 @@ def extract_reviews_from_page(soup, company_name):
     return reviews
 
 
-# Step 5) From each review, store to the CSV file: companyName, datePublished, ratingValue, reviewBody.
+# Step 5) From each review, store to the CSV file: 
+# "companyName", "datePublished", "ratingValue", "reviewBody"
 def iterate_review_pages(start_url):
     """Iterate through all review pages and extract reviews."""
     url = start_url
@@ -121,13 +143,13 @@ def iterate_review_pages(start_url):
     if html_content:
         company_name = extract_company_name(html_content)
         print(f"Company Name: {company_name}")
-        
+
         total_reviews = extract_total_reviews(html_content)
         if total_reviews:
             print(f"Total number of reviews found: {total_reviews}")
         else:
             print("Could not retrieve total number of reviews.")
-        
+
         while url:
             print(f"Processing page {page_number}: {url}")
             if page_number > 1:
@@ -151,24 +173,26 @@ def iterate_review_pages(start_url):
             else:
                 print("All pages have been processed.")
                 break
-        
+
         print(f"Total reviews extracted: {total_reviews_extracted}")
     else:
         print("Failed to download or parse the first page.")
 
 
-# Step 6) Save the final CSV file with four columns: "companyName", "datePublished", "ratingValue", "reviewBody".
+# Step 6) Save the final CSV file with the same four columns: 
+# "companyName", "datePublished", "ratingValue", "reviewBody"
 def save_reviews_to_csv(reviews, company_name):
     """Save the extracted reviews to a CSV file."""
     filename = f"{company_name} Trustpilot Reviews.csv"
     fieldnames = ['companyName', 'datePublished', 'ratingValue', 'reviewBody']
-    
+
     with open(filename, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter=';')
         writer.writeheader()
         writer.writerows(reviews)
 
-    print(f"Saved {len(reviews)} reviews to {filename}")
+    full_path = os.path.abspath(filename)
+    print(f"Saved {len(reviews)} reviews to {full_path}")
 
 
 if __name__ == "__main__":
