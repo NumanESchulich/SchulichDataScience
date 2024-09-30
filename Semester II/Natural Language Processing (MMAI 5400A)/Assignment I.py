@@ -5,6 +5,7 @@ import csv
 import requests
 from bs4 import BeautifulSoup
 
+url = r'https://ca.trustpilot.com/review/apollomvmt.com'
 
 # Step 1) Use the requests module to download the HTML for URL.
 def check_and_install_package(package_name):
