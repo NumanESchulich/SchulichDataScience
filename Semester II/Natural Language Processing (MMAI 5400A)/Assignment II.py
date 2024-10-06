@@ -44,6 +44,9 @@ def load_and_preprocess_data():
     train_data.to_csv(TRAIN_FILE, index=False)
     valid_data.to_csv(VALID_FILE, index=False)
 
+    print(f"File loaded and split successfully.")
+    print(f"Evaluating models now, please stand by.")
+
 
 def evaluate(model, X_train, y_train, X_valid, y_valid):
     """
