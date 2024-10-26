@@ -8,7 +8,7 @@
 # conda activate anomaly_env
 
 # 3. Install Necessary Packages:
-# pip install opencv-python Pillow
+# pip install opencv-python Pillow matplotlib
 
 
 import os
