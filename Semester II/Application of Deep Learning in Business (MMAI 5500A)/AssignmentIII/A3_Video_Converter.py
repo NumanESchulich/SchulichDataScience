@@ -24,6 +24,7 @@ BASE_FOLDER = 'Assignment3'  # Base directory of the project
 VIDEO_FILENAME = 'assignment3_video.avi'  # Video file to be processed
 FRAMES_FOLDER = 'frames'  # Folder where frames will be stored
 
+
 def convert_video_to_images(base_folder=BASE_FOLDER, video_filename=VIDEO_FILENAME, frames_folder=FRAMES_FOLDER):
     """
     Converts the video file to JPEG images and stores them in a newly created folder named 'frames'.
@@ -31,9 +32,12 @@ def convert_video_to_images(base_folder=BASE_FOLDER, video_filename=VIDEO_FILENA
 
     Arguments:
     ----------
-    base_folder : (string) Name of the base directory of the project.
-    video_filename : (string) Name of the video file to be processed.
-    frames_folder : (string) Name of the folder where the frames will be stored.
+    base_folder : str
+        Name of the base directory of the project.
+    video_filename : str
+        Name of the video file to be processed.
+    frames_folder : str
+        Name of the folder where the frames will be stored.
     """
     # Define paths using relative paths
     base_dir = os.path.abspath(base_folder)  # Base directory for the project
@@ -59,7 +63,7 @@ def convert_video_to_images(base_folder=BASE_FOLDER, video_filename=VIDEO_FILENA
     while video.isOpened():
         ret, frame = video.read()
         if ret:
-            im_fname = os.path.join(frames_path, f'frame{i:0>4}.jpg')
+            im_fname = os.path.join(frames_path, f'frame{i:04}.jpg')
             cv2.imwrite(im_fname, frame)
             i += 1
         else:
@@ -73,6 +77,7 @@ def convert_video_to_images(base_folder=BASE_FOLDER, video_filename=VIDEO_FILENA
         print(f'Video converted successfully. {i} images written to {frames_path}')
     else:
         print('No frames captured.')
+
 
 if __name__ == "__main__":
     convert_video_to_images()

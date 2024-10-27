@@ -23,28 +23,44 @@ from PIL import Image
 from glob import glob
 tf.get_logger().setLevel('ERROR')
 
+
 # Change the paths below as needed
-IMG_DIR = 'Assignment3/frames/'  # Path to the folder containing the images for training
-MODEL_SAVE_PATH = 'Assignment3/AnomalyDetector.h5'  # Path to save the trained model
+
+# Path to the folder containing the images (without anomalies) for training
+IMG_DIR = 'Assignment3/normals/'
+
+# Path to save the model in .h5 format
+MODEL_SAVE_PATH = 'Assignment3/AnomalyDetector.h5'  
+
 
 # Function to load images from the directory
 def load_images(img_dir, im_width=60, im_height=44):
     """
     Loads and normalizes the images as a numpy array for training.
+
+    Parameters:
+    img_dir (str): Directory where images are stored.
+    im_width (int): Width to resize the images to.
+    im_height (int): Height to resize the images to.
+
+    Returns:
+    X (numpy.ndarray): Flattened array of normalized images.
+    images (list): List of original images.
     """
     images = []
     fnames = glob(f'{img_dir}{os.path.sep}frame*.jpg')
     fnames.sort()
-    
+
     for fname in fnames:
         im = Image.open(fname)
         im_array = np.array(im.resize((im_width, im_height)))
-        images.append(im_array.astype(np.float32) / 255.)
+        images.append(im_array.astype(np.float32) / 255.0)
         im.close()
-    
+
     # Flatten the images to a single vector
-    X = np.array(images).reshape(-1, np.prod(images[0].shape))  # Flattening
+    X = np.array(images).reshape(-1, np.prod(images[0].shape))
     return X, images
+
 
 # Load the images
 X_train, _ = load_images(IMG_DIR)
@@ -54,8 +70,10 @@ input_dim = X_train.shape[1]  # Flattened input shape
 encoding_dim = 128  # Compression size (adjust as needed)
 
 input_layer = Input(shape=(input_dim,))
-encoded = Dense(encoding_dim, activation='relu', 
-                activity_regularizer=regularizers.l1(10e-5))(input_layer)
+encoded = Dense(
+    encoding_dim, activation='relu',
+    activity_regularizer=regularizers.l1(10e-5)
+)(input_layer)
 decoded = Dense(input_dim, activation='sigmoid')(encoded)
 
 # Build and compile the autoencoder
@@ -66,12 +84,14 @@ autoencoder.compile(optimizer=Adam(learning_rate=0.001), loss='mse')
 autoencoder.fit(X_train, X_train, epochs=50, batch_size=256, shuffle=True, validation_split=0.2, verbose=2)
 
 # Calculate and plot losses for each training frame
-losses = [autoencoder.evaluate(X_train[i:i+1], X_train[i:i+1], verbose=0) for i in range(len(X_train))]
+losses = [autoencoder.evaluate(X_train[i:i + 1], X_train[i:i + 1], verbose=0) for i in range(len(X_train))]
 plt.plot(losses)
 plt.xlabel('Frame Index')
 plt.ylabel('Reconstruction Loss')
 plt.title('Loss per Frame')
 plt.show()
 
-# Save the trained model
+# Save the trained model in .h5 format
 autoencoder.save(MODEL_SAVE_PATH)
+
+print(f"Model saved at: {MODEL_SAVE_PATH}")
