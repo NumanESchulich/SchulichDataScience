@@ -67,7 +67,7 @@ X_train, _ = load_images(IMG_DIR)
 
 # Define the Autoencoder architecture
 input_dim = X_train.shape[1]  # Flattened input shape
-encoding_dim = 128  # Compression size (adjust as needed)
+encoding_dim = 128  # Compression size
 
 input_layer = Input(shape=(input_dim,))
 encoded = Dense(

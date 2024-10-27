@@ -12,7 +12,7 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 from PIL import Image
 
-# Change the paths below as needed
+# Please change the paths below as needed
 MODEL_PATH = os.path.normpath('Assignment3/AnomalyDetector.h5')
 IMAGE_PATH = os.path.normpath('Assignment3/test_image.jpg')
 
@@ -41,8 +41,8 @@ def predict_anomaly(frame):
     reconstruction = autoencoder(frame_flat, training=False)
     loss = np.mean(np.abs(frame_flat - reconstruction))
 
-    # Set a threshold for anomaly detection (adjust based on experimentation)
-    threshold = 0.2305  # Adjust this value based on your experiments
+    # Set a threshold for anomaly detection
+    threshold = 0.2305  # Landed on this value after trial/error
 
     # Determine if the frame is anomalous
     return loss > threshold
